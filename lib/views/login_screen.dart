@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/auth_view_model.dart';
 import '../widgets/user_form_fields_widget.dart';
+import '../route_generator.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,7 +61,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     return SizedBox(
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: (){},
+                        onPressed: () {
+                          Navigator.pushNamed(context, registrationStepperRoute);
+                        },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade600,
                       foregroundColor: Colors.white,
