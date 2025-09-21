@@ -23,10 +23,33 @@ enum SharedPreferencesKeys {
   const SharedPreferencesKeys(this.text);
 }
 
+enum RegExpPattern {
+  email(
+    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    'Please enter a valid email address.',
+  ),
+  name(r'^[a-zA-Z]{3,}$', 'Enter valid name'),
+  phone(r'^\+61[2-9]\d{8}$', 'Please enter a valid Australian phone number');
+
+  const RegExpPattern(this.pattern, this.errorMessage);
+
+  final String pattern;
+  final String errorMessage;
+}
+
 enum EndPoints {
   signIn('auth/login');
 
   final String url;
 
   const EndPoints(this.url);
+}
+
+enum LoginWith {
+  email('Email'),
+  phone('Phone');
+
+  final String value;
+
+  const LoginWith(this.value);
 }

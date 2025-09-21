@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "408739942906",
+    "project_id": "the-captain-taxis",
+    "storage_bucket": "the-captain-taxis.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408739942906:android:bde6a64b1c43d0a9c8d443",
+        "android_client_info": {
+          "package_name": "com.the.captain.taxis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "408739942906-f65pr7mm6lnv5268elaes15bsu7r5u56.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhCOlYGWeIQFxlWC24669mN49QQBJwDMQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408739942906-f65pr7mm6lnv5268elaes15bsu7r5u56.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "408739942906-41sst67bn8n4sgohe200ja2s8vhm44ot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.captaintaxis.taxirider2"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
