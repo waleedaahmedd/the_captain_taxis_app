@@ -1,11 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../app_init.dart';
+import '../route_generator.dart';
 import '../services/auth_service.dart';
 import '../utils/enums.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  AuthViewModel() {
+    _callPackageInfo();
+  }
+
   final AuthService _authService = AuthService();
+
+  String _version = '';
+
+  String get getVersion => _version;
+  String _buildNumber = '';
+
+  String get getBuildNumber => _buildNumber;
+
   final TextEditingController _phoneController = TextEditingController();
 
   final TextEditingController _emailController = TextEditingController();
@@ -17,14 +32,6 @@ class AuthViewModel extends ChangeNotifier {
   String _countryCode = '+61';
 
   bool _isTermsAccepted = false;
-
-  bool _isDriverLogin = false;
-
-  bool get getIsDriverLogin => _isDriverLogin;
-
-  set setIsDriverLogin(bool value) {
-    _isDriverLogin = value;
-  }
 
   String get getLoginWith => _loginWith;
 
@@ -54,6 +61,20 @@ class AuthViewModel extends ChangeNotifier {
   void setCountryCode(String value) {
     _countryCode = value;
     notifyListeners();
+  }
+
+  Future<void> _callPackageInfo() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    _version = packageInfo.version;
+    _buildNumber = packageInfo.buildNumber;
+    _navigateToLogin();
+    notifyListeners();
+  }
+
+  void _navigateToLogin() {
+    Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacementNamed(navigatorKey.currentContext!, loginRoute);
+    });
   }
 
   bool validateFormKey() {

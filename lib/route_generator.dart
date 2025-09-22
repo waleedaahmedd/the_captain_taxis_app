@@ -5,7 +5,6 @@ import 'package:the_captain_taxis/views/login_screen.dart';
 import 'package:the_captain_taxis/views/otp_screen.dart';
 import 'package:the_captain_taxis/views/splash_screen.dart';
 
-
 const String splashRoute = '/';
 const String loginRoute = '/login';
 const String otpRoute = '/otp';

@@ -10,7 +10,129 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.whiteColor,
-      appBar: _buildCustomAppBar(context),
+      appBar: AppBar(
+        backgroundColor: CustomColors.whiteColor,
+        elevation: 0,
+        title: Text(
+          'Home',
+          style: TextStyle(
+            fontFamily: 'CircularStd',
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: CustomColors.blackColor,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Iconsax.notification,
+              color: CustomColors.blackColor,
+              size: 24.sp,
+            ),
+            onPressed: () {},
+          ),
+          SizedBox(width: 8.w),
+        ],
+      ),
+      drawer: Drawer(
+        backgroundColor: CustomColors.whiteColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // Drawer Header
+            Container(
+              height: 200.h,
+              decoration: BoxDecoration(
+                color: CustomColors.primaryColor,
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(20.r),
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CircleAvatar(
+                      radius: 30.r,
+                      backgroundColor: CustomColors.whiteColor,
+                      child: Icon(
+                        Iconsax.user,
+                        size: 30.sp,
+                        color: CustomColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Text(
+                      'John Doe',
+                      style: TextStyle(
+                        fontFamily: 'CircularStd',
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: CustomColors.whiteColor,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'john.doe@email.com',
+                      style: TextStyle(
+                        fontFamily: 'CircularStd',
+                        fontSize: 14.sp,
+                        color: CustomColors.whiteColor.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Drawer Menu Items
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Column(
+                children: [
+                  _buildDrawerItem(
+                    icon: Iconsax.home_2,
+                    title: 'Home',
+                    isSelected: true,
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Iconsax.profile_2user,
+                    title: 'Profile',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Iconsax.setting_2,
+                    title: 'Settings',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Iconsax.message_question,
+                    title: 'Help & Support',
+                    onTap: () {},
+                  ),
+                  SizedBox(height: 20.h),
+                  Divider(
+                    color: CustomColors.blackColor.withValues(alpha: 0.1),
+                    thickness: 1,
+                  ),
+                  SizedBox(height: 20.h),
+                  _buildDrawerItem(
+                    icon: Iconsax.logout,
+                    title: 'Logout',
+                    isLogout: true,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(24.w),
@@ -69,7 +191,25 @@ class HomeScreen extends StatelessWidget {
                     
                     SizedBox(height: 20.h),
                     
-
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildActionButton(
+                            icon: Iconsax.add_circle,
+                            title: 'New Task',
+                            onTap: () {},
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _buildActionButton(
+                            icon: Iconsax.calendar,
+                            title: 'Schedule',
+                            onTap: () {},
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -102,7 +242,30 @@ class HomeScreen extends StatelessWidget {
                     
                     SizedBox(height: 20.h),
                     
-
+                    _buildActivityItem(
+                      icon: Iconsax.tick_circle,
+                      title: 'Task Completed',
+                      subtitle: 'Project milestone achieved',
+                      time: '2 hours ago',
+                    ),
+                    
+                    SizedBox(height: 16.h),
+                    
+                    _buildActivityItem(
+                      icon: Iconsax.message,
+                      title: 'New Message',
+                      subtitle: 'You have 3 unread messages',
+                      time: '4 hours ago',
+                    ),
+                    
+                    SizedBox(height: 16.h),
+                    
+                    _buildActivityItem(
+                      icon: Iconsax.notification,
+                      title: 'Reminder',
+                      subtitle: 'Meeting at 3:00 PM',
+                      time: '6 hours ago',
+                    ),
                   ],
                 ),
               ),
@@ -115,125 +278,147 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
-
-
-
-  PreferredSizeWidget _buildCustomAppBar(BuildContext context) {
-    // Calculate the height based on the content to avoid overflow
-    final double topPadding = MediaQuery.of(context).padding.top;
-    final double height = topPadding + 80; // Adjusted height to prevent overflow
-
-    return PreferredSize(
-      preferredSize: Size.fromHeight(height),
-      child: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        automaticallyImplyLeading: false,
-        flexibleSpace: Container(
-          padding: EdgeInsets.only(
-            top: topPadding + 10,
-            left: 20,
-            right: 20,
-            bottom: 10,
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    bool isSelected = false,
+    bool isLogout = false,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: isSelected ? CustomColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isLogout 
+              ? Colors.red.shade600 
+              : isSelected 
+                  ? CustomColors.primaryColor 
+                  : CustomColors.blackColor.withValues(alpha: 0.7),
+          size: 22.sp,
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'CircularStd',
+            fontSize: 16.sp,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isLogout 
+                ? Colors.red.shade600 
+                : isSelected 
+                    ? CustomColors.primaryColor 
+                    : CustomColors.blackColor,
           ),
-          child: Row(
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 12.w),
+        decoration: BoxDecoration(
+          color: CustomColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: CustomColors.primaryColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: CustomColors.primaryColor,
+              size: 24.sp,
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'CircularStd',
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: CustomColors.primaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String time,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40.w,
+          height: 40.w,
+          decoration: BoxDecoration(
+            color: CustomColors.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(
+            icon,
+            color: CustomColors.primaryColor,
+            size: 20.sp,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Customer Profile Section
-              Expanded(
-                child: Row(
-                  children: [
-                    // Customer Image
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        size: 24,
-                        color: Colors.blue[700],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Customer Name
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'John Doe',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Good morning!',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColors.blackColor,
                 ),
               ),
-
-              const SizedBox(width: 12),
-
-              // Notification Bell Icon
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  icon: Stack(
-                    children: [
-                      Icon(
-                        Icons.notifications,
-                        color: Colors.blue[700],
-                        size: 24,
-                      ),
-                      // Notification Badge
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    // Handle notification tap
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Notifications'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
+              SizedBox(height: 2.h),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 12.sp,
+                  color: CustomColors.blackColor.withValues(alpha: 0.6),
                 ),
               ),
             ],
           ),
         ),
-      ),
+        Text(
+          time,
+          style: TextStyle(
+            fontFamily: 'CircularStd',
+            fontSize: 10.sp,
+            color: CustomColors.blackColor.withValues(alpha: 0.5),
+          ),
+        ),
+      ],
     );
-  }}
+  }
+}

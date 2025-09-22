@@ -42,36 +42,42 @@ class AppInit extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               fillColor: CustomColors.lightGreyColor,
               filled: true,
-              enabledBorder: const OutlineInputBorder(
+              errorStyle: TextStyle(height: 2.h),
+              enabledBorder:  OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.transparent),
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+                borderRadius: BorderRadius.all(Radius.circular(15.r)),
               ),
-              focusedErrorBorder: const OutlineInputBorder(
+              focusedErrorBorder:  OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.redAccent),
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+                borderRadius: BorderRadius.all(Radius.circular(15.r)),
               ),
-              errorBorder: const OutlineInputBorder(
+              errorBorder:  OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.redAccent),
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+                borderRadius: BorderRadius.all(Radius.circular(15.r)),
               ),
               suffixIconColor: CustomColors.greyColor,
               prefixIconColor: CustomColors.greyColor,
               focusColor: CustomColors.primaryColor,
-              hintStyle: TextStyle(
+              labelStyle: TextStyle(
                 fontFamily: 'CircularStd',
-                fontSize: 14.sp,
+                fontSize: 12.sp,
                 color: CustomColors.greyColor,
               ),
-              focusedBorder: const OutlineInputBorder(
+              hintStyle: TextStyle(
+                fontFamily: 'CircularStd',
+                fontSize: 12.sp,
+                color: CustomColors.greyColor,
+              ),
+              focusedBorder:  OutlineInputBorder(
                 borderSide: BorderSide(color: CustomColors.primaryColor),
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+                borderRadius: BorderRadius.all(Radius.circular(15.r)),
               ),
             ),
           ),
           debugShowCheckedModeBanner: false,
-          title: 'Bruno\'s Kitchen',
+          title: 'Captain Taxis',
           navigatorObservers: [routeObserver],
-          initialRoute: loginRoute,
+          initialRoute: splashRoute,
           navigatorKey: navigatorKey,
           onGenerateRoute: RouteGenerator.generateRoute,
           builder: EasyLoading.init(),

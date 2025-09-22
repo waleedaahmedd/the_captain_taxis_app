@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:http/http.dart';
 import '../models/base_response_model.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
