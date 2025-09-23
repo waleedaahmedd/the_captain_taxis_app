@@ -139,6 +139,7 @@ class _RegistrationStepperScreenState extends State<RegistrationStepperScreen> {
           Expanded(
             child: PageView.builder(
               controller: _pageController,
+              physics: NeverScrollableScrollPhysics(), // Disable swiping/sliding
               onPageChanged: (index) {
                 setState(() {
                   _currentStep = index;
@@ -213,7 +214,7 @@ class _RegistrationStepperScreenState extends State<RegistrationStepperScreen> {
                         borderRadius: BorderRadius.circular(16.r),
                         onTap: (){
                           if(context.read<DriverRegistrationViewModel>().validateFormKey()) {
-                            _currentStep < _steps.length - 1 ? _nextStep : _completeRegistration;
+                            _currentStep < _steps.length - 1 ? _nextStep() : _completeRegistration();
                           }
                         },
                         child: Center(
