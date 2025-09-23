@@ -1,352 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 import '../utils/custom_colors.dart';
+import '../utils/custom_font_style.dart';
+import '../view_models/driver_registration_view_model.dart';
 
-class DriverShiftScreen extends StatefulWidget {
+class DriverShiftScreen extends StatelessWidget {
   const DriverShiftScreen({super.key});
 
   @override
-  State<DriverShiftScreen> createState() => _DriverShiftScreenState();
-}
-
-class _DriverShiftScreenState extends State<DriverShiftScreen> {
-  TimeOfDay _startTime = TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _endTime = TimeOfDay(hour: 17, minute: 0);
-  final Set<String> _selectedDays = {'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'};
-  String _shiftType = 'full_time';
-  String _availabilityType = 'immediate';
-
-  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Container(
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: CustomColors.whiteColor,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: CustomColors.primaryColor.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
+    return Consumer<DriverRegistrationViewModel>(
+      builder: (context, viewModel, child) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(left: 10.w, right: 10.w, bottom: 20.h),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Iconsax.clock,
-                      color: CustomColors.primaryColor,
-                      size: 24.sp,
-                    ),
-                    SizedBox(width: 12.w),
-                    Text(
-                      'Working Schedule',
-                      style: TextStyle(
-                        fontFamily: 'CircularStd',
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: CustomColors.blackColor,
-                      ),
-                    ),
-                  ],
+                // Header
+                _buildHeader(context),
+                SizedBox(height: 30.h),
+                
+                // Driver Type Options
+                _buildDriverTypeOption(
+                  context,
+                  title: 'Full-Time Driver',
+                  description: 'Minimum 24 hours/week • 4+ days • 6+ hours/day • Higher priority for rides\n\nPriority bookings\nFlexible hours',
+                  isRecommended: true,
+                  isSelected: viewModel.isFullTimeDriver,
+                  onTap: () => viewModel.setDriverType('fullTime'),
                 ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Set your working hours and availability',
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 14.sp,
-                    color: CustomColors.blackColor.withValues(alpha: 0.6),
-                  ),
+                SizedBox(height: 20.h),
+                
+                _buildDriverTypeOption(
+                  context,
+                  title: 'Part-time Driver/Student',
+                  description: 'Maximum 24 hours/week • Up to 3 days • 6 hours/day max • Study-friendly schedule\n\nWeekend focus\nFlexible timing',
+                  isRecommended: false,
+                  isSelected: viewModel.isPartTimeDriver,
+                  onTap: () => viewModel.setDriverType('partTime'),
                 ),
-              ],
-            ),
-          ),
-          
-          SizedBox(height: 24.h),
-          
-          // Shift Type Selection
-          _buildShiftTypeSection(),
-          SizedBox(height: 24.h),
-          
-          // Working Hours
-          _buildWorkingHoursSection(),
-          SizedBox(height: 24.h),
-          
-          // Working Days
-          _buildWorkingDaysSection(),
-          SizedBox(height: 24.h),
-          
-          // Availability Settings
-          _buildAvailabilitySection(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShiftTypeSection() {
-    return Container(
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: CustomColors.whiteColor,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: CustomColors.primaryColor.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Shift Type',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: CustomColors.blackColor,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(
-                child: _buildShiftTypeOption('Full Time', '8+ hours per day', Iconsax.clock, 'full_time'),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _buildShiftTypeOption('Part Time', '4-7 hours per day', Iconsax.timer, 'part_time'),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          _buildShiftTypeOption('Flexible', 'Variable hours', Iconsax.clock_1, 'flexible'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShiftTypeOption(String title, String subtitle, IconData icon, String value) {
-    final isSelected = _shiftType == value;
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _shiftType = value;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected 
-                ? CustomColors.primaryColor 
-                : CustomColors.primaryColor.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(12.r),
-          color: isSelected 
-              ? CustomColors.primaryColor.withValues(alpha: 0.1) 
-              : CustomColors.whiteColor,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected 
-                  ? CustomColors.primaryColor 
-                  : CustomColors.blackColor.withValues(alpha: 0.6),
-              size: 24.w,
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontFamily: 'CircularStd',
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected 
-                          ? CustomColors.primaryColor 
-                          : CustomColors.blackColor,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontFamily: 'CircularStd',
-                      fontSize: 12.sp,
-                      color: CustomColors.blackColor.withValues(alpha: 0.6),
-                    ),
-                  ),
+                
+                // Show working days and hours sections when driver type is selected
+                if (viewModel.isFullTimeDriver || viewModel.isPartTimeDriver) ...[
+                  SizedBox(height: 30.h),
+                  
+                  // Working Days Section
+                  _buildWorkingDaysSection(context, viewModel),
+                  SizedBox(height: 20.h),
+                  
+                  // Working Hours Section
+                  _buildWorkingHoursSection(context, viewModel),
                 ],
-              ),
-            ),
-            if (isSelected)
-              Icon(
-                Iconsax.tick_circle,
-                color: CustomColors.primaryColor,
-                size: 20.w,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWorkingHoursSection() {
-    return Container(
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: CustomColors.whiteColor,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: CustomColors.primaryColor.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Working Hours',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: CustomColors.blackColor,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTimeSelector('Start Time', _startTime, () => _selectStartTime()),
-              ),
-              SizedBox(width: 16.w),
-              Expanded(
-                child: _buildTimeSelector('End Time', _endTime, () => _selectEndTime()),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: CustomColors.primaryColor.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: CustomColors.primaryColor.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Iconsax.info_circle,
-                  color: CustomColors.primaryColor,
-                  size: 20.w,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
-                    'You can adjust your hours anytime in the app',
-                    style: TextStyle(
-                      fontFamily: 'CircularStd',
-                      fontSize: 12.sp,
-                      color: CustomColors.blackColor.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTimeSelector(String label, TimeOfDay time, VoidCallback onTap) {
+  Widget _buildHeader(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'CircularStd',
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-            color: CustomColors.blackColor,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: CustomColors.primaryColor.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-              borderRadius: BorderRadius.circular(12.r),
-              color: CustomColors.whiteColor,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Iconsax.clock,
-                  color: CustomColors.primaryColor,
-                  size: 20.w,
-                ),
-                SizedBox(width: 12.w),
-                Text(
-                  time.format(context),
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 14.sp,
-                    color: CustomColors.blackColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Iconsax.arrow_down_2,
-                  color: CustomColors.blackColor.withValues(alpha: 0.4),
-                  size: 16.w,
-                ),
-              ],
-            ),
-          ),
-        ),
+        black24w600(data: 'Shift Selection'),
+        grey12(data: 'Choose the driver type that best fits your schedule and availability.',centre: true),
       ],
     );
   }
 
-  Widget _buildWorkingDaysSection() {
-    final days = [
-      {'name': 'Monday', 'short': 'Mon'},
-      {'name': 'Tuesday', 'short': 'Tue'},
-      {'name': 'Wednesday', 'short': 'Wed'},
-      {'name': 'Thursday', 'short': 'Thu'},
-      {'name': 'Friday', 'short': 'Fri'},
-      {'name': 'Saturday', 'short': 'Sat'},
-      {'name': 'Sunday', 'short': 'Sun'},
-    ];
-
+  Widget _buildWorkingDaysSection(BuildContext context, DriverRegistrationViewModel viewModel) {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final isFullTime = viewModel.isFullTimeDriver;
+    
     return Container(
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
+        boxShadow: kElevationToShadow[9],
         color: CustomColors.whiteColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
@@ -357,284 +88,408 @@ class _DriverShiftScreenState extends State<DriverShiftScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Working Days',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: CustomColors.blackColor,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
-            children: days.map((day) {
-              final isSelected = _selectedDays.contains(day['name']);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedDays.remove(day['name']);
-                    } else {
-                      _selectedDays.add(day['name']!);
-                    }
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                  decoration: BoxDecoration(
-                    color: isSelected 
-                        ? CustomColors.primaryColor 
-                        : CustomColors.whiteColor,
-                    borderRadius: BorderRadius.circular(20.r),
-                    border: Border.all(
-                      color: isSelected 
-                          ? CustomColors.primaryColor 
-                          : CustomColors.primaryColor.withValues(alpha: 0.2),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Text(
-                    day['short']!,
-                    style: TextStyle(
-                      fontFamily: 'CircularStd',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected 
-                          ? CustomColors.whiteColor 
-                          : CustomColors.blackColor,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          SizedBox(height: 16.h),
           Row(
             children: [
-              Expanded(
-                child: Container(
-                  height: 40.h,
-                  decoration: BoxDecoration(
-                    color: CustomColors.whiteColor,
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: CustomColors.primaryColor,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12.r),
-                      onTap: _selectAllDays,
+              Icon(
+                Iconsax.calendar_1,
+                color: CustomColors.primaryColor,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              black18w500(data: 'Working Days'),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          grey12(
+            data: isFullTime 
+                ? 'Select at least 4 days per week for full-time drivers'
+                : 'Select up to 3 days per week for part-time drivers',
+          ),
+          SizedBox(height: 20.h),
+          
+          // Days Row
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: days.map((day) {
+                final isSelected = viewModel.isWorkingDaySelected(day);
+                final canSelect = isFullTime || viewModel.getSelectedWorkingDaysCount < 3 || isSelected;
+                
+                return Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: GestureDetector(
+                    onTap: canSelect ? () => viewModel.toggleWorkingDay(day) : null,
+                    child: Container(
+                      width: 50.w,
+                      height: 50.w,
+                      decoration: BoxDecoration(
+                        color: isSelected 
+                            ? CustomColors.primaryColor
+                            : CustomColors.whiteColor,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: isSelected 
+                              ? CustomColors.primaryColor
+                              : CustomColors.greyColor.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
                       child: Center(
                         child: Text(
-                          'Select All',
+                          day,
                           style: TextStyle(
                             fontFamily: 'CircularStd',
-                            color: CustomColors.primaryColor,
                             fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
+                            color: isSelected 
+                                ? CustomColors.whiteColor
+                                : canSelect 
+                                    ? CustomColors.blackColor
+                                    : CustomColors.greyColor,
                           ),
                         ),
                       ),
                     ),
                   ),
+                );
+              }).toList(),
+            ),
+          ),
+          
+          // Validation message
+          if (!viewModel.isValidWorkingDaysSelection) ...[
+            SizedBox(height: 12.h),
+            Text(
+              isFullTime 
+                  ? 'Please select at least 4 days'
+                  : 'Please select 1-3 days',
+              style: TextStyle(
+                fontFamily: 'CircularStd',
+                fontSize: 12.sp,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkingHoursSection(BuildContext context, DriverRegistrationViewModel viewModel) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        boxShadow: kElevationToShadow[9],
+        color: CustomColors.whiteColor,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: CustomColors.primaryColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Iconsax.clock,
+                color: CustomColors.primaryColor,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              black18w500(data: 'Working Hours'),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          grey12(
+            data: 'Set your preferred start time and number of working hours per day',
+          ),
+          SizedBox(height: 20.h),
+          
+          // Preferred Start Time
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Preferred Start Time',
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: CustomColors.blackColor,
                 ),
               ),
-              SizedBox(width: 8.w),
-              Expanded(
+              SizedBox(height: 8.h),
+              GestureDetector(
+                onTap: () async {
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: viewModel.getPreferredStartTime,
+                  );
+                  if (picked != null) {
+                    viewModel.setPreferredStartTime(picked);
+                  }
+                },
                 child: Container(
-                  height: 40.h,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                   decoration: BoxDecoration(
-                    color: CustomColors.whiteColor,
+                    border: Border.all(color: CustomColors.greyColor.withOpacity(0.3)),
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: CustomColors.blackColor.withValues(alpha: 0.2),
-                      width: 1.5,
-                    ),
                   ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12.r),
-                      onTap: _clearAllDays,
-                      child: Center(
-                        child: Text(
-                          'Clear All',
-                          style: TextStyle(
-                            fontFamily: 'CircularStd',
-                            color: CustomColors.blackColor.withValues(alpha: 0.6),
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Iconsax.clock,
+                        color: CustomColors.primaryColor,
+                        size: 20.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        viewModel.getPreferredStartTime.format(context),
+                        style: TextStyle(
+                          fontFamily: 'CircularStd',
+                          fontSize: 14.sp,
+                          color: CustomColors.blackColor,
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvailabilitySection() {
-    return Container(
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: CustomColors.whiteColor,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: CustomColors.primaryColor.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          
+          SizedBox(height: 20.h),
+          
+          // Hours per Day
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hours per Day',
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: CustomColors.blackColor,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                decoration: BoxDecoration(
+                  border: Border.all(color: CustomColors.greyColor.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Iconsax.timer,
+                          color: CustomColors.primaryColor,
+                          size: 20.sp,
+                        ),
+                        SizedBox(width: 12.w),
+                        Text(
+                          '${viewModel.getSelectedHours} hours',
+                          style: TextStyle(
+                            fontFamily: 'CircularStd',
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomColors.blackColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => viewModel.setSelectedHours(viewModel.getSelectedHours - 1),
+                          child: Container(
+                            width: 32.w,
+                            height: 32.w,
+                            decoration: BoxDecoration(
+                              color: viewModel.getSelectedHours > viewModel.getMinHours
+                                  ? CustomColors.primaryColor.withOpacity(0.1)
+                                  : CustomColors.greyColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: viewModel.getSelectedHours > viewModel.getMinHours
+                                    ? CustomColors.primaryColor.withOpacity(0.3)
+                                    : CustomColors.greyColor.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              size: 18.w,
+                              color: viewModel.getSelectedHours > viewModel.getMinHours
+                                  ? CustomColors.primaryColor
+                                  : CustomColors.greyColor,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        GestureDetector(
+                          onTap: () => viewModel.setSelectedHours(viewModel.getSelectedHours + 1),
+                          child: Container(
+                            width: 32.w,
+                            height: 32.w,
+                            decoration: BoxDecoration(
+                              color: viewModel.getSelectedHours < viewModel.getMaxHours
+                                  ? CustomColors.primaryColor.withOpacity(0.1)
+                                  : CustomColors.greyColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                color: viewModel.getSelectedHours < viewModel.getMaxHours
+                                    ? CustomColors.primaryColor.withOpacity(0.3)
+                                    : CustomColors.greyColor.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              size: 18.w,
+                              color: viewModel.getSelectedHours < viewModel.getMaxHours
+                                  ? CustomColors.primaryColor
+                                  : CustomColors.greyColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          // Hours range info
+          SizedBox(height: 12.h),
           Text(
-            'Availability Settings',
+            'Range: ${viewModel.getMinHours}-${viewModel.getMaxHours} hours per day',
             style: TextStyle(
               fontFamily: 'CircularStd',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: CustomColors.blackColor,
+              fontSize: 12.sp,
+              color: CustomColors.greyColor,
             ),
-          ),
-          SizedBox(height: 16.h),
-          _buildAvailabilityOption(
-            'Available for immediate bookings',
-            'Accept rides as soon as they come in',
-            Iconsax.flash_1,
-            'immediate',
-          ),
-          _buildAvailabilityOption(
-            'Advance booking only',
-            'Only accept rides scheduled in advance',
-            Iconsax.clock,
-            'advance',
-          ),
-          _buildAvailabilityOption(
-            'Peak hours only',
-            'Only work during high-demand periods',
-            Iconsax.trend_up,
-            'peak',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAvailabilityOption(String title, String subtitle, IconData icon, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _availabilityType = value;
-          });
-        },
-        child: Row(
+  Widget _buildDriverTypeOption(
+    BuildContext context, {
+    required String title,
+    required String description,
+    required bool isRecommended,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? CustomColors.primaryColor.withOpacity(0.1)
+              : CustomColors.whiteColor,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: isSelected 
+                ? CustomColors.primaryColor
+                : CustomColors.greyColor.withOpacity(0.3),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected 
+              ? [
+                  BoxShadow(
+                    color: CustomColors.primaryColor.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : kElevationToShadow[2],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Radio<String>(
-              value: value,
-              groupValue: _availabilityType,
-              onChanged: (value) {
-                setState(() {
-                  _availabilityType = value!;
-                });
-              },
-              activeColor: CustomColors.primaryColor,
-            ),
-            SizedBox(width: 8.w),
-            Icon(
-              icon,
-              color: CustomColors.primaryColor,
-              size: 20.w,
-            ),
-            SizedBox(width: 8.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            // Title and Recommended Badge
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
                     title,
                     style: TextStyle(
                       fontFamily: 'CircularStd',
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
                       color: CustomColors.blackColor,
                     ),
                   ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontFamily: 'CircularStd',
-                      fontSize: 12.sp,
-                      color: CustomColors.blackColor.withValues(alpha: 0.6),
+                ),
+                if (isRecommended) ...[
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: CustomColors.primaryColor,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Text(
+                      'Recommended',
+                      style: TextStyle(
+                        fontFamily: 'CircularStd',
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
+                        color: CustomColors.whiteColor,
+                      ),
                     ),
                   ),
                 ],
+                SizedBox(width: 12.w),
+                // Checkbox
+                Container(
+                  width: 24.w,
+                  height: 24.w,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected 
+                          ? CustomColors.primaryColor
+                          : CustomColors.greyColor.withOpacity(0.5),
+                      width: 2,
+                    ),
+                    color: isSelected 
+                        ? CustomColors.primaryColor
+                        : Colors.transparent,
+                  ),
+                  child: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: CustomColors.whiteColor,
+                          size: 16.w,
+                        )
+                      : null,
+                ),
+              ],
+            ),
+            SizedBox(height: 12.h),
+            
+            // Description
+            Text(
+              description,
+              style: TextStyle(
+                fontFamily: 'CircularStd',
+                fontSize: 12.sp,
+                color: CustomColors.blackColor.withOpacity(0.7),
+                height: 1.4,
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _selectStartTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _startTime,
-    );
-    if (picked != null) {
-      setState(() {
-        _startTime = picked;
-      });
-    }
-  }
-
-  Future<void> _selectEndTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _endTime,
-    );
-    if (picked != null) {
-      setState(() {
-        _endTime = picked;
-      });
-    }
-  }
-
-  void _selectAllDays() {
-    setState(() {
-      _selectedDays.addAll([
-        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-      ]);
-    });
-  }
-
-  void _clearAllDays() {
-    setState(() {
-      _selectedDays.clear();
-    });
-  }
-
-  // Getters for accessing form data
-  Map<String, String> getFormData() {
-    return {
-      'shiftType': _shiftType,
-      'startTime': _startTime.format(context),
-      'endTime': _endTime.format(context),
-      'workingDays': _selectedDays.join(', '),
-      'availabilityType': _availabilityType,
-    };
   }
 }

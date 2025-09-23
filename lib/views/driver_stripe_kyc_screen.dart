@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 import '../utils/custom_colors.dart';
+import '../utils/custom_font_style.dart';
+import '../utils/custom_buttons.dart';
+import '../view_models/driver_registration_view_model.dart';
 
 class DriverStripeKycScreen extends StatefulWidget {
   const DriverStripeKycScreen({super.key});
@@ -16,325 +20,185 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Container(
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: CustomColors.whiteColor,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: CustomColors.primaryColor.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
+    return Consumer<DriverRegistrationViewModel>(
+      builder: (context, viewModel, child) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(left: 10.w, right: 10.w, bottom: 20.h),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Iconsax.wallet_3,
-                      color: CustomColors.primaryColor,
-                      size: 24.sp,
-                    ),
-                    SizedBox(width: 12.w),
-                    Text(
-                      'Connect with Stripe',
-                      style: TextStyle(
-                        fontFamily: 'CircularStd',
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: CustomColors.blackColor,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Set up secure payment processing with Stripe',
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 14.sp,
-                    color: CustomColors.blackColor.withValues(alpha: 0.6),
-                  ),
-                ),
+                // Header
+                _buildHeader(context),
+                SizedBox(height: 20.h),
+                
+                // Stripe Connection Section
+                _buildStripeConnectionSection(context),
+                SizedBox(height: 20.h),
+                
+                // Benefits Section
+                _buildBenefitsSection(context),
+                SizedBox(height: 20.h),
+                
+                // Security Information
+                _buildSecurityInfo(context),
               ],
             ),
           ),
-          
-          SizedBox(height: 24.h),
-          
-          if (!_isConnected) _buildStripeConnectionCard(),
-          if (_isConnected) _buildConnectedCard(),
-          
-          SizedBox(height: 24.h),
-          
-          // Benefits Section
-          _buildBenefitsSection(),
-          
-          SizedBox(height: 24.h),
-          
-          // Security Information
-          _buildSecurityInfo(),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildStripeConnectionCard() {
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      children: [
+        black24w600(data: 'Stripe KYC'),
+        grey12(data: 'Connect with Stripe for secure payment processing and compliance verification.'),
+      ],
+    );
+  }
+
+  Widget _buildStripeConnectionSection(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
+        boxShadow: kElevationToShadow[9],
         color: CustomColors.whiteColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: CustomColors.primaryColor.withValues(alpha: 0.2),
+          color: CustomColors.primaryColor.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
       child: Column(
         children: [
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: CustomColors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(50.r),
-            ),
-            child: Icon(
-              Iconsax.wallet_3,
-              size: 48.w,
-              color: CustomColors.primaryColor,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Text(
-            'Stripe Payment Processing',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: CustomColors.blackColor,
-            ),
+          Row(
+            children: [
+              Icon(
+                Iconsax.wallet_3,
+                color: CustomColors.primaryColor,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              black18w500(data: 'Stripe Account'),
+            ],
           ),
           SizedBox(height: 8.h),
-          Text(
-            'Connect your Stripe account to receive payments securely and efficiently',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 14.sp,
-              color: CustomColors.blackColor.withValues(alpha: 0.6),
-            ),
-            textAlign: TextAlign.center,
+          grey12(
+            data: 'Connect your Stripe account to receive payments securely and efficiently',
           ),
-          SizedBox(height: 24.h),
-          _buildFeatureList(),
-          SizedBox(height: 24.h),
-          Container(
-            width: double.infinity,
-            height: 56.h,
-            decoration: BoxDecoration(
-              color: CustomColors.primaryColor,
-              borderRadius: BorderRadius.circular(16.r),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16.r),
-                onTap: _isConnecting ? null : _connectStripe,
-                child: Center(
-                  child: _isConnecting
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 20.w,
-                              height: 20.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(CustomColors.whiteColor),
-                              ),
-                            ),
-                            SizedBox(width: 12.w),
-                            Text(
-                              'Connecting...',
-                              style: TextStyle(
-                                fontFamily: 'CircularStd',
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                color: CustomColors.whiteColor,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Iconsax.wallet_3, size: 20.sp, color: CustomColors.whiteColor),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Connect Stripe',
-                              style: TextStyle(
-                                fontFamily: 'CircularStd',
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
-                                color: CustomColors.whiteColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ),
-          ),
+          SizedBox(height: 20.h),
+          
+          if (!_isConnected) _buildConnectionCard(context),
+          if (_isConnected) _buildConnectedCard(context),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureList() {
-    final features = [
-      'Secure payment processing',
-      'Instant payouts',
-      'Global payment methods',
-      'Fraud protection',
-      'Real-time analytics',
-      'Mobile-optimized checkout',
-    ];
-
+  Widget _buildConnectionCard(BuildContext context) {
     return Column(
-      children: features.map((feature) => Padding(
-        padding: EdgeInsets.symmetric(vertical: 4.h),
-        child: Row(
-          children: [
-            Icon(
-              Iconsax.tick_circle,
-              color: CustomColors.primaryColor,
-              size: 16.w,
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              feature,
-              style: TextStyle(
-                fontFamily: 'CircularStd',
-                fontSize: 14.sp,
-                color: CustomColors.blackColor.withValues(alpha: 0.7),
+      children: [
+        Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: CustomColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Iconsax.wallet_3,
+                size: 48.w,
+                color: CustomColors.primaryColor,
               ),
-            ),
-          ],
+              SizedBox(height: 16.h),
+              black18w500(data: 'Connect to Stripe'),
+              SizedBox(height: 8.h),
+              grey12(
+                data: 'Set up secure payment processing with industry-leading security',
+              ),
+              SizedBox(height: 20.h),
+              
+              // Features List
+              _buildFeatureList(context),
+              SizedBox(height: 24.h),
+              
+              // Connect Button
+              customButton(
+                text: _isConnecting ? 'Connecting...' : 'Connect with Stripe',
+                onTap: _isConnecting ? () {} : _connectStripe,
+                colored: !_isConnecting,
+                icon: Iconsax.wallet_3,
+                height: 50,
+              ),
+            ],
+          ),
         ),
-      )).toList(),
+      ],
     );
   }
 
-  Widget _buildConnectedCard() {
+  Widget _buildConnectedCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: CustomColors.whiteColor,
-        borderRadius: BorderRadius.circular(20.r),
+        color: Colors.green.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: CustomColors.primaryColor,
-          width: 1.5,
+          color: Colors.green.withOpacity(0.3),
+          width: 1,
         ),
       ),
       child: Column(
         children: [
-          Icon(
-            Iconsax.tick_circle,
-            size: 48.w,
-            color: CustomColors.primaryColor,
+          Row(
+            children: [
+              Icon(
+                Iconsax.tick_circle,
+                color: Colors.green,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Connected Successfully',
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          grey12(
+            data: 'Your Stripe account is connected and ready for payments',
           ),
           SizedBox(height: 16.h),
-          Text(
-            'Stripe Connected Successfully!',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: CustomColors.blackColor,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Your Stripe account is now connected and ready to process payments',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 14.sp,
-              color: CustomColors.blackColor.withValues(alpha: 0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 20.h),
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 48.h,
-                  decoration: BoxDecoration(
-                    color: CustomColors.whiteColor,
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: Colors.red.shade400,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12.r),
-                      onTap: () {
-                        setState(() {
-                          _isConnected = false;
-                        });
-                      },
-                      child: Center(
-                        child: Text(
-                          'Disconnect',
-                          style: TextStyle(
-                            fontFamily: 'CircularStd',
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red.shade600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                child: customButton(
+                  text: 'View Account',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Opening Stripe Dashboard')),
+                    );
+                  },
+                  colored: false,
+                  icon: Iconsax.eye,
+                  height: 40,
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
-                child: Container(
-                  height: 48.h,
-                  decoration: BoxDecoration(
-                    color: CustomColors.primaryColor,
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12.r),
-                      onTap: () {
-                        // Handle Stripe dashboard
-                      },
-                      child: Center(
-                        child: Text(
-                          'Dashboard',
-                          style: TextStyle(
-                            fontFamily: 'CircularStd',
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: CustomColors.whiteColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                child: customButton(
+                  text: 'Disconnect',
+                  onTap: _disconnectStripe,
+                  colored: false,
+                  icon: Iconsax.logout,
+                  height: 40,
                 ),
               ),
             ],
@@ -344,10 +208,48 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
     );
   }
 
-  Widget _buildBenefitsSection() {
+  Widget _buildFeatureList(BuildContext context) {
+    final features = [
+      'Secure payment processing',
+      'PCI DSS compliance',
+      'Real-time transaction monitoring',
+      'Automated tax calculations',
+      'Multi-currency support',
+      'Fraud protection',
+    ];
+
+    return Column(
+      children: features.map((feature) => Padding(
+        padding: EdgeInsets.only(bottom: 8.h),
+        child: Row(
+          children: [
+            Icon(
+              Iconsax.tick_circle,
+              color: CustomColors.primaryColor,
+              size: 16.sp,
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                feature,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 12.sp,
+                  color: CustomColors.blackColor.withOpacity(0.7),
+                ),
+              ),
+            ),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+
+  Widget _buildBenefitsSection(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
+        boxShadow: kElevationToShadow[9],
         color: CustomColors.whiteColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
@@ -356,136 +258,202 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Why Stripe?',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
-              color: CustomColors.blackColor,
-            ),
+          Row(
+            children: [
+              Icon(
+                Iconsax.star,
+                color: CustomColors.primaryColor,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              black18w500(data: 'Benefits'),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          grey12(
+            data: 'Why choose Stripe for your payment processing needs',
+          ),
+          SizedBox(height: 20.h),
+          
+          _buildBenefitItem(
+            context,
+            icon: Iconsax.shield_tick,
+            title: 'Bank-Level Security',
+            description: 'PCI DSS Level 1 compliance with end-to-end encryption',
           ),
           SizedBox(height: 16.h),
+          
           _buildBenefitItem(
-            'Fast Payouts',
-            'Get paid within 2 business days',
-            Iconsax.flash_1,
+            context,
+            icon: Iconsax.global,
+            title: 'Global Reach',
+            description: 'Accept payments from customers worldwide in 135+ currencies',
           ),
+          SizedBox(height: 16.h),
+          
           _buildBenefitItem(
-            'Low Fees',
-            'Competitive rates starting at 2.9%',
-            Iconsax.dollar_circle,
-          ),
-          _buildBenefitItem(
-            'Global Reach',
-            'Accept payments from customers worldwide',
-            Iconsax.global,
-          ),
-          _buildBenefitItem(
-            'Security',
-            'Bank-level security and fraud protection',
-            Iconsax.shield_tick,
+            context,
+            icon: Iconsax.chart_2,
+            title: 'Real-Time Analytics',
+            description: 'Track your earnings and transactions with detailed insights',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBenefitItem(String title, String description, IconData icon) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: CustomColors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Icon(
-              icon,
-              color: CustomColors.primaryColor,
-              size: 20.w,
-            ),
+  Widget _buildBenefitItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(8.w),
+          decoration: BoxDecoration(
+            color: CustomColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8.r),
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: CustomColors.blackColor,
-                  ),
-                ),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 12.sp,
-                    color: CustomColors.blackColor.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
+          child: Icon(
+            icon,
+            color: CustomColors.primaryColor,
+            size: 20.sp,
           ),
-        ],
-      ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColors.blackColor,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                description,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 12.sp,
+                  color: CustomColors.blackColor.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSecurityInfo() {
+  Widget _buildSecurityInfo(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: CustomColors.primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: kElevationToShadow[9],
+        color: CustomColors.whiteColor,
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: CustomColors.primaryColor.withValues(alpha: 0.2),
+          color: CustomColors.primaryColor.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(
-            Iconsax.shield_tick,
-            color: CustomColors.primaryColor,
-            size: 20.w,
+          Row(
+            children: [
+              Icon(
+                Iconsax.security_safe,
+                color: CustomColors.primaryColor,
+                size: 24.sp,
+              ),
+              SizedBox(width: 12.w),
+              black18w500(data: 'Security & Compliance'),
+            ],
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Security & Compliance',
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: CustomColors.blackColor,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'Stripe is PCI DSS compliant and uses industry-standard encryption to protect your data',
-                  style: TextStyle(
-                    fontFamily: 'CircularStd',
-                    fontSize: 12.sp,
-                    color: CustomColors.blackColor.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
+          SizedBox(height: 8.h),
+          grey12(
+            data: 'Your data and payments are protected by industry-leading security measures',
+          ),
+          SizedBox(height: 20.h),
+          
+          _buildSecurityItem(
+            context,
+            'PCI DSS Level 1',
+            'Highest level of payment security certification',
+          ),
+          SizedBox(height: 12.h),
+          
+          _buildSecurityItem(
+            context,
+            '256-bit SSL Encryption',
+            'All data is encrypted in transit and at rest',
+          ),
+          SizedBox(height: 12.h),
+          
+          _buildSecurityItem(
+            context,
+            'Fraud Detection',
+            'Advanced machine learning algorithms prevent fraudulent transactions',
+          ),
+          SizedBox(height: 12.h),
+          
+          _buildSecurityItem(
+            context,
+            'Regular Audits',
+            'Continuous security monitoring and compliance verification',
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSecurityItem(
+    BuildContext context,
+    String title,
+    String description,
+  ) {
+    return Row(
+      children: [
+        Icon(
+          Iconsax.tick_circle,
+          color: Colors.green,
+          size: 16.sp,
+        ),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColors.blackColor,
+                ),
+              ),
+              Text(
+                description,
+                style: TextStyle(
+                  fontFamily: 'CircularStd',
+                  fontSize: 10.sp,
+                  color: CustomColors.blackColor.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -494,8 +462,8 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
       _isConnecting = true;
     });
 
-    // Simulate Stripe connection process
-    await Future.delayed(Duration(seconds: 3));
+    // Simulate connection process
+    await Future.delayed(Duration(seconds: 2));
 
     setState(() {
       _isConnecting = false;
@@ -504,29 +472,22 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Stripe connected successfully!',
-          style: TextStyle(
-            fontFamily: 'CircularStd',
-            color: CustomColors.whiteColor,
-          ),
-        ),
-        backgroundColor: CustomColors.primaryColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        duration: Duration(seconds: 3),
+        content: Text('Successfully connected to Stripe!'),
+        backgroundColor: Colors.green,
       ),
     );
   }
 
-  // Getters for accessing connection status
-  bool get isConnected => _isConnected;
-  Map<String, dynamic> getFormData() {
-    return {
-      'stripeConnected': _isConnected,
-      'connectionDate': _isConnected ? DateTime.now().toIso8601String() : null,
-    };
+  void _disconnectStripe() {
+    setState(() {
+      _isConnected = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Disconnected from Stripe'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 }

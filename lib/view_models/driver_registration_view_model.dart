@@ -136,6 +136,115 @@ class DriverRegistrationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Declarations state management
+  final Map<String, bool?> _declarations = {
+    'qualifiedToOperate': null,
+    'consentToAgreement': null,
+    'consentToInformationStatement': null,
+  };
+
+  // Driver type state management
+  String _selectedDriverType = 'fullTime'; // 'fullTime' or 'partTime'
+
+  // Working days and hours state management
+  final Set<String> _selectedWorkingDays = {};
+  TimeOfDay _preferredStartTime = TimeOfDay(hour: 9, minute: 0);
+  int _selectedHours = 8;
+
+  // Driver type getters and setters
+  String get getSelectedDriverType => _selectedDriverType;
+  bool get isFullTimeDriver => _selectedDriverType == 'fullTime';
+  bool get isPartTimeDriver => _selectedDriverType == 'partTime';
+
+  void setDriverType(String driverType) {
+    _selectedDriverType = driverType;
+    // Reset selections when changing driver type
+    _selectedWorkingDays.clear();
+    _selectedHours = driverType == 'fullTime' ? 8 : 6;
+    notifyListeners();
+  }
+
+  // Working days getters and setters
+  Set<String> get getSelectedWorkingDays => Set.from(_selectedWorkingDays);
+  bool isWorkingDaySelected(String day) => _selectedWorkingDays.contains(day);
+  int get getSelectedWorkingDaysCount => _selectedWorkingDays.length;
+  bool get isValidWorkingDaysSelection {
+    if (isFullTimeDriver) {
+      return _selectedWorkingDays.length >= 4;
+    } else {
+      return _selectedWorkingDays.length <= 3 && _selectedWorkingDays.length > 0;
+    }
+  }
+
+  void toggleWorkingDay(String day) {
+    // Convert full day names to short forms for consistency
+    final dayMap = {
+      'Monday': 'Mon',
+      'Tuesday': 'Tue', 
+      'Wednesday': 'Wed',
+      'Thursday': 'Thu',
+      'Friday': 'Fri',
+      'Saturday': 'Sat',
+      'Sunday': 'Sun',
+    };
+    
+    final shortDay = dayMap[day] ?? day;
+    
+    if (_selectedWorkingDays.contains(shortDay)) {
+      _selectedWorkingDays.remove(shortDay);
+    } else {
+      if (isFullTimeDriver) {
+        // No limit for full-time
+        _selectedWorkingDays.add(shortDay);
+      } else {
+        // Max 3 days for part-time
+        if (_selectedWorkingDays.length < 3) {
+          _selectedWorkingDays.add(shortDay);
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  // Working hours getters and setters
+  TimeOfDay get getPreferredStartTime => _preferredStartTime;
+  int get getSelectedHours => _selectedHours;
+  int get getMaxHours => isFullTimeDriver ? 12 : 8;
+  int get getMinHours => isFullTimeDriver ? 6 : 4;
+
+  void setPreferredStartTime(TimeOfDay time) {
+    _preferredStartTime = time;
+    notifyListeners();
+  }
+
+  void setSelectedHours(int hours) {
+    if (hours >= getMinHours && hours <= getMaxHours) {
+      _selectedHours = hours;
+      notifyListeners();
+    }
+  }
+
+  // Declaration getters and setters
+  bool? getDeclaration(String declarationKey) => _declarations[declarationKey];
+  
+  bool get isQualifiedToOperate => _declarations['qualifiedToOperate'] ?? false;
+  bool get hasConsentedToAgreement => _declarations['consentToAgreement'] ?? false;
+  bool get hasConsentedToInformationStatement => _declarations['consentToInformationStatement'] ?? false;
+  
+  bool get areAllDeclarationsAccepted {
+    return _declarations.values.every((value) => value == true);
+  }
+
+  void setDeclaration(String declarationKey, bool value) {
+    _declarations[declarationKey] = value;
+    notifyListeners();
+  }
+
+  void clearAllDeclarations() {
+    _declarations.updateAll((key, value) => null);
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();

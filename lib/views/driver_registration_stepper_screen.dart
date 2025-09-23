@@ -7,7 +7,6 @@ import '../view_models/driver_registration_view_model.dart';
 import 'driver_personal_info_screen.dart';
 import 'driver_documents_screen.dart';
 import 'driver_info_review_screen.dart';
-import 'driver_payment_screen.dart';
 import 'driver_stripe_kyc_screen.dart';
 import 'driver_shift_screen.dart';
 import 'driver_vehicle_screen.dart';
@@ -53,19 +52,14 @@ class _RegistrationStepperScreenState extends State<RegistrationStepperScreen> {
       icon: Iconsax.car,
     ),
     StepData(
-      title: 'Payment',
-      subtitle: 'Set up payment method',
-      icon: Iconsax.card,
+      title: 'Shift',
+      subtitle: 'Set your working hours',
+      icon: Iconsax.clock,
     ),
     StepData(
       title: 'Stripe',
       subtitle: 'Connect with Stripe',
       icon: Iconsax.wallet_3,
-    ),
-    StepData(
-      title: 'Shift',
-      subtitle: 'Set your working hours',
-      icon: Iconsax.clock,
     ),
   ];
 
@@ -275,11 +269,9 @@ class _RegistrationStepperScreenState extends State<RegistrationStepperScreen> {
       case 3:
         return DriverVehicleScreen();
       case 4:
-        return DriverPaymentScreen();
+        return DriverShiftScreen();
       case 5:
         return DriverStripeKycScreen();
-      case 6:
-        return DriverShiftScreen();
       default:
         return const SizedBox();
     }
