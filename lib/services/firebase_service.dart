@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 import '../models/base_response_model.dart';
 
@@ -9,20 +12,60 @@ class FirebaseService {
   String? _verificationId;
   int? _resendToken;
 
-  // Future<String> upLoadImageFile(
-  //     {required CroppedFile mFileImage, required String fileName}) async {
-  //   final Reference storageReference = FirebaseStorage.instance.ref().child(
-  //       navigatorKey.currentContext!
-  //           .read<AuthViewModel>()
-  //           .getAuthResponse
-  //           .data!
-  //           .sId!);
-  //   // Create a reference to "mountains.jpg"
-  //   final mountainsRef = storageReference.child("$fileName.jpg");
-  //   mountainsRef.putFile(File(mFileImage.path));
-  //   String url = await mountainsRef.getDownloadURL();
-  //   return url;
-  // }
+  double _uploadProgress = 0.0;
+
+  double get uploadProgress => _uploadProgress;
+
+  Future<void> initializeAnonymousUser() async {
+    try {
+      if (_auth.currentUser == null) {
+        await _auth.signInAnonymously();
+        print('Anonymous user created: ${_auth.currentUser?.uid}');
+      }
+    } catch (e) {
+      print('Error creating anonymous user: $e');
+    }
+  }
+
+  Future<String> upLoadImageFile({
+    required File mFileImage,
+    required String fileName,
+    Function(double progress)? onProgress,
+  }) async {
+
+    await initializeAnonymousUser();
+
+    final Reference storageReference = FirebaseStorage.instance.ref().child(
+        'profile');
+    // Create a reference to "mountains.jpg"
+    final imageRef = storageReference.child("$fileName.jpg");
+    
+    // Reset progress
+    _uploadProgress = 0.0;
+    onProgress?.call(0.0);
+    
+    // Upload file with progress tracking
+    final UploadTask uploadTask = imageRef.putFile(mFileImage);
+    
+    // Listen to upload progress
+    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      _uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
+      onProgress?.call(_uploadProgress);
+      print('Upload progress: ${(_uploadProgress * 100).toStringAsFixed(1)}%');
+    });
+    
+    // Wait for upload to complete
+    await uploadTask;
+    
+    // Get download URL
+    String url = await imageRef.getDownloadURL();
+    
+    // Set progress to 100% when complete
+    _uploadProgress = 1.0;
+    onProgress?.call(1.0);
+    
+    return url;
+  }
 
   Future<BaseResponseModel> verifyPhoneNumber(String phoneNumber) async {
     final completer = Completer<BaseResponseModel>();

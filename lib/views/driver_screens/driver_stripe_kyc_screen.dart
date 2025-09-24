@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import '../utils/custom_colors.dart';
-import '../utils/custom_font_style.dart';
-import '../utils/custom_buttons.dart';
-import '../view_models/driver_registration_view_model.dart';
+import '../../utils/custom_colors.dart';
+import '../../utils/custom_font_style.dart';
+import '../../utils/custom_buttons.dart';
+import '../../view_models/driver_registration_view_model.dart';
 
 class DriverStripeKycScreen extends StatefulWidget {
   const DriverStripeKycScreen({super.key});
@@ -22,26 +22,29 @@ class _DriverStripeKycScreenState extends State<DriverStripeKycScreen> {
   Widget build(BuildContext context) {
     return Consumer<DriverRegistrationViewModel>(
       builder: (context, viewModel, child) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.only(left: 10.w, right: 10.w, bottom: 20.h),
-            child: Column(
-              children: [
-                // Header
-                _buildHeader(context),
-                SizedBox(height: 20.h),
-                
-                // Stripe Connection Section
-                _buildStripeConnectionSection(context),
-                SizedBox(height: 20.h),
-                
-                // Benefits Section
-                _buildBenefitsSection(context),
-                SizedBox(height: 20.h),
-                
-                // Security Information
-                _buildSecurityInfo(context),
-              ],
+        return Form(
+          key: viewModel.getFormKeyForStep(5),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.only(left: 10.w, right: 10.w, bottom: 20.h),
+              child: Column(
+                children: [
+                  // Header
+                  _buildHeader(context),
+                  SizedBox(height: 20.h),
+                  
+                  // Stripe Connection Section
+                  _buildStripeConnectionSection(context),
+                  SizedBox(height: 20.h),
+                  
+                  // Benefits Section
+                  _buildBenefitsSection(context),
+                  SizedBox(height: 20.h),
+                  
+                  // Security Information
+                  _buildSecurityInfo(context),
+                ],
+              ),
             ),
           ),
         );

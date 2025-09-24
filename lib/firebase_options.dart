@@ -19,7 +19,7 @@ class DefaultFirebaseOptions {
     if (kIsWeb) {
       throw UnsupportedError(
         'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
+            'you can reconfigure this by running the FlutterFire CLI again.',
       );
     }
     switch (defaultTargetPlatform) {
@@ -30,17 +30,17 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
+              'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
+              'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
+              'you can reconfigure this by running the FlutterFire CLI again.',
         );
       default:
         throw UnsupportedError(
@@ -50,19 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD70RWZeSR4ZdR3TysTM8GmktnQH8t7q2E',
-    appId: '1:183953031205:android:1cf8ca3d1d2e99e0d0ffcc',
-    messagingSenderId: '183953031205',
-    projectId: 'sample-37395',
-    storageBucket: 'sample-37395.firebasestorage.app',
+    apiKey: 'AIzaSyBhCOlYGWeIQFxlWC24669mN49QQBJwDMQ',
+    appId: '1:408739942906:android:bde6a64b1c43d0a9c8d443',
+    messagingSenderId: '408739942906',
+    projectId: 'the-captain-taxis',
+    storageBucket: 'the-captain-taxis.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAVklqqKNU1t_dDojVYVdUG-5qd6KV2BQM',
-    appId: '1:183953031205:ios:f1ff235e9b1a8ae2d0ffcc',
-    messagingSenderId: '183953031205',
-    projectId: 'sample-37395',
-    storageBucket: 'sample-37395.firebasestorage.app',
-    iosBundleId: 'com.example.untitledSampleApp',
+    apiKey: 'AIzaSyAitXycfdpYNAizFibYZ5sEC78Dfjy26oQ',
+    appId: '1:408739942906:ios:dbcd28a9c8fcffc9c8d443',
+    messagingSenderId: '408739942906',
+    projectId: 'the-captain-taxis',
+    storageBucket: 'the-captain-taxis.firebasestorage.app',
+    androidClientId: '408739942906-36gmaciprqkq178hfdpvd96f8e77n7na.apps.googleusercontent.com',
+    iosBundleId: 'com.the.captain.taxis',
   );
 }
