@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_buttons.dart';
 import '../../utils/custom_font_style.dart';
@@ -22,11 +24,30 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
   late List<CameraDescription> _cameras;
   bool _isCameraInitialized = false;
   bool _isFrontCamera = true;
+  
+  // Face detection variables
+  late FaceDetector _faceDetector;
+  bool _isFaceDetected = false;
+  bool _isFaceCentered = false;
+  String _faceDetectionMessage = 'Position your face in the center';
 
   @override
   void initState() {
     super.initState();
+    _initializeFaceDetector();
     _initializeCamera();
+  }
+
+  void _initializeFaceDetector() {
+    final options = FaceDetectorOptions(
+      enableContours: true,
+      enableLandmarks: true,
+      enableClassification: true,
+      enableTracking: true,
+      minFaceSize: 0.1,
+      performanceMode: FaceDetectorMode.accurate,
+    );
+    _faceDetector = FaceDetector(options: options);
   }
 
   Future<void> _initializeCamera() async {
@@ -50,6 +71,7 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
           setState(() {
             _isCameraInitialized = true;
           });
+          _startFaceDetection();
         }
       }
     } catch (e) {
@@ -107,9 +129,103 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
     }
   }
 
+  void _startFaceDetection() {
+    _cameraController?.startImageStream((CameraImage image) {
+      _processImageForFaceDetection(image);
+    });
+  }
+
+  Future<void> _processImageForFaceDetection(CameraImage image) async {
+    if (!mounted) return;
+
+    try {
+      final inputImage = _inputImageFromCameraImage(image);
+      if (inputImage == null) return;
+
+      final List<Face> faces = await _faceDetector.processImage(inputImage);
+      
+      if (mounted) {
+        setState(() {
+          _isFaceDetected = faces.isNotEmpty;
+          if (_isFaceDetected) {
+            _isFaceCentered = _isFaceInCenter(faces.first, image);
+            _updateFaceDetectionMessage();
+          } else {
+            _isFaceCentered = false;
+            _faceDetectionMessage = 'No face detected';
+          }
+        });
+      }
+    } catch (e) {
+      print('Face detection error: $e');
+    }
+  }
+
+  InputImage? _inputImageFromCameraImage(CameraImage image) {
+    final camera = _cameras.firstWhere(
+      (camera) => camera.lensDirection == (_isFrontCamera ? CameraLensDirection.front : CameraLensDirection.back),
+      orElse: () => _cameras.first,
+    );
+
+    final imageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
+    if (imageFormat == null || (imageFormat != InputImageFormat.nv21 && imageFormat != InputImageFormat.yuv_420_888 && imageFormat != InputImageFormat.bgra8888)) {
+      return null;
+    }
+
+    final plane = image.planes.first;
+    
+    return InputImage.fromBytes(
+      bytes: plane.bytes,
+      metadata: InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: _isFrontCamera ? InputImageRotation.rotation90deg : InputImageRotation.rotation270deg,
+        format: imageFormat,
+        bytesPerRow: plane.bytesPerRow,
+      ),
+    );
+  }
+
+  bool _isFaceInCenter(Face face, CameraImage image) {
+    final faceRect = face.boundingBox;
+    final imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    
+    // Define the center area (oval cutout area)
+    final centerX = imageSize.width / 2;
+    final centerY = imageSize.height / 2;
+    final ovalWidth = imageSize.width * 0.7; // 70% of screen width
+    final ovalHeight = imageSize.height * 0.5; // 50% of screen height
+    
+    final faceCenterX = faceRect.center.dx;
+    final faceCenterY = faceRect.center.dy;
+    
+    // Check if face center is within the oval area
+    final dx = (faceCenterX - centerX) / (ovalWidth / 2);
+    final dy = (faceCenterY - centerY) / (ovalHeight / 2);
+    
+    // Check if face is within the oval (ellipse equation: (x/a)² + (y/b)² <= 1)
+    final isInOval = (dx * dx) + (dy * dy) <= 1;
+    
+    // Also check if face size is appropriate (not too small or too large)
+    final faceSize = faceRect.width * faceRect.height;
+    final imageArea = imageSize.width * imageSize.height;
+    final faceSizeRatio = faceSize / imageArea;
+    
+    return isInOval && faceSizeRatio > 0.01 && faceSizeRatio < 0.3; // Face should be 1-30% of image
+  }
+
+  void _updateFaceDetectionMessage() {
+    if (_isFaceCentered) {
+      _faceDetectionMessage = 'Perfect! Face is centered';
+    } else {
+      _faceDetectionMessage = 'Move your face to the center';
+    }
+  }
+
   @override
   void dispose() {
+    _cameraController?.stopImageStream();
     _cameraController?.dispose();
+    _faceDetector.close();
     super.dispose();
   }
 
@@ -166,27 +282,30 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
             children: [
               // Face icon in the center of the cutout
               Icon(
-                Iconsax.user,
+                _isFaceCentered ? Iconsax.tick_circle : Iconsax.user,
                 size: 48.sp,
-                color: CustomColors.primaryColor.withValues(alpha: 0.8),
+                color: _isFaceCentered ? Colors.green : CustomColors.primaryColor.withValues(alpha: 0.8),
               ),
               SizedBox(height: 12.h),
               Text(
-                'Align your face within the oval frame',
+                _faceDetectionMessage,
                 style: TextStyle(
-                  color: CustomColors.primaryColor,
+                  color: _isFaceCentered ? Colors.green : CustomColors.primaryColor,
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                 ),
+                textAlign: TextAlign.center,
               ),
               SizedBox(height: 4.h),
-              Text(
-                'Make sure your face is clearly visible',
-                style: TextStyle(
-                  color: CustomColors.whiteColor,
-                  fontSize: 12.sp,
+              if (!_isFaceCentered)
+                Text(
+                  'Make sure your face is clearly visible',
+                  style: TextStyle(
+                    color: CustomColors.whiteColor,
+                    fontSize: 12.sp,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
             ],
           ),
         ),
@@ -387,29 +506,56 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                                 ),
                               ),
 
-                            // Capture Button
-                            Container(
-                              width: 80.w,
-                              height: 80.h,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: CustomColors.whiteColor,
-                                  width: 4,
-                                ),
-                              ),
-                              child: IconButton(
-                                icon: Container(
-                                  width: 60.w,
-                                  height: 60.h,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: CustomColors.whiteColor,
+                            // Capture Button (only show when face is centered)
+                            if (_isFaceCentered)
+                              Container(
+                                width: 80.w,
+                                height: 80.h,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 4,
                                   ),
                                 ),
-                                onPressed: () => _captureImage(viewModel),
+                                child: IconButton(
+                                  icon: Container(
+                                    width: 60.w,
+                                    height: 60.h,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.green,
+                                    ),
+                                    child: Icon(
+                                      Iconsax.camera,
+                                      color: Colors.white,
+                                      size: 24.sp,
+                                    ),
+                                  ),
+                                  onPressed: () => _captureImage(viewModel),
+                                ),
+                              )
+                            else
+                              // Show message when face is not centered
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(
+                                    color: CustomColors.primaryColor.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Position your face in the center to capture',
+                                  style: TextStyle(
+                                    color: CustomColors.whiteColor,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
