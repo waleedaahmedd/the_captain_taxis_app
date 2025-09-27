@@ -4,7 +4,6 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 import 'package:the_captain_taxis/utils/custom_colors.dart';
 import 'package:the_captain_taxis/view_models/auth_view_model.dart';
-import 'package:the_captain_taxis/view_models/driver_registration_view_model.dart';
 import 'package:the_captain_taxis/view_models/otp_view_model.dart';
 
 import 'app_init.dart';
@@ -38,7 +37,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthViewModel()),
         ChangeNotifierProvider(create: (context) => OtpViewModel()),
-        ChangeNotifierProvider(create: (context) => DriverRegistrationViewModel()),
+
       ],
       child: AppInit(),
     ),

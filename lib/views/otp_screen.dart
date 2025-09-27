@@ -11,9 +11,27 @@ import '../utils/phone_formator.dart';
 import '../view_models/auth_view_model.dart';
 import '../view_models/otp_view_model.dart';
 import '../route_generator.dart';
+import '../widgets/custom_app_bar_widget.dart';
 
-class OtpScreen extends StatelessWidget {
+class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
+
+  @override
+  State<OtpScreen> createState() => _OtpScreenState();
+}
+
+class _OtpScreenState extends State<OtpScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Start the timer when the screen is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final otpViewModel = context.read<OtpViewModel>();
+      if (otpViewModel.otpTimerSeconds == 0) {
+        otpViewModel.startOtpTimer();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +39,8 @@ class OtpScreen extends StatelessWidget {
       builder: (context, otpViewModel, child) {
         return Scaffold(
           backgroundColor: CustomColors.whiteColor,
-          appBar: AppBar(
-            backgroundColor: CustomColors.whiteColor,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(
-                Iconsax.arrow_left_2,
-                color: CustomColors.blackColor,
-                size: 24.sp,
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
+          appBar: CustomAppBarWidget(
+            title: 'OTP Verification',
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -190,7 +199,7 @@ class OtpScreen extends StatelessWidget {
                                       if (success) {
                                         Navigator.pushReplacementNamed(
                                           context,
-                                          registrationStepperRoute,
+                                          driverRegistrationStepperRoute,
                                         );
                                       }
                                     }
