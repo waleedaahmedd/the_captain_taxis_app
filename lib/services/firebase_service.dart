@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_cropper/image_cropper.dart';
 
 import '../models/base_response_model.dart';
 
@@ -30,13 +29,14 @@ class FirebaseService {
   Future<String> upLoadImageFile({
     required File mFileImage,
     required String fileName,
+    required String folderName,
     Function(double progress)? onProgress,
   }) async {
 
     await initializeAnonymousUser();
 
     final Reference storageReference = FirebaseStorage.instance.ref().child(
-        'profile');
+        folderName);
     // Create a reference to "mountains.jpg"
     final imageRef = storageReference.child("$fileName.jpg");
     

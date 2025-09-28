@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:iconsax/iconsax.dart';
 import 'dart:io';
-import 'package:image_cropper/image_cropper.dart';
+// import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/custom_colors.dart';
@@ -445,8 +445,7 @@ class DriverVehicleScreen extends StatelessWidget {
   Future<void> _capturePlateImage(bool isFront, DriverVehicleViewModel viewModel) async {
     try {
       final ImageGenerator imageGenerator = ImageGenerator();
-      final CroppedFile croppedFile = await imageGenerator.createImageFile(fromCamera: true);
-      final File image = File(croppedFile.path);
+      final File image = await imageGenerator.createImageFile(fromCamera: true);
       
       if (isFront) {
         viewModel.setFrontPlateImage(image);
@@ -469,8 +468,7 @@ class DriverVehicleScreen extends StatelessWidget {
         subtitle: 'Choose how you want to add the image',
         onImageSelected: (source) async {
           final ImageGenerator imageGenerator = ImageGenerator();
-          final CroppedFile croppedFile = await imageGenerator.createImageFile(fromCamera: source == ImageSource.camera);
-          final File image = File(croppedFile.path);
+          final File image = await imageGenerator.createImageFile(fromCamera: source == ImageSource.camera);
           
           viewModel.setVehicleDocumentImage(documentKey, image);
           _showSuccessMessage('Document uploaded successfully!');

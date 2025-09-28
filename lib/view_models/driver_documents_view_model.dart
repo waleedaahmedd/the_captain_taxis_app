@@ -1,7 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
+// import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import '../services/firebase_service.dart';
 import '../utils/image_genrator.dart';
@@ -105,14 +107,15 @@ class DriverDocumentsViewModel extends ChangeNotifier {
     try {
       // Start progress tracking
       setProfileImageProgress = 0.0;
-      
+      Random random = Random();
+      int randomNumber = random.nextInt(100);
       // Start upload and track real progress
       final String imageUrl = await firebaseService.upLoadImageFile(
         mFileImage: cameraImage,
-        fileName: 'profile_image',
+        fileName: randomNumber.toString(),
         onProgress: (progress) {
           setProfileImageProgress = progress;
-        },
+        }, folderName: 'Driver Image',
       );
       
       setIdentityVerificationImage(imageUrl);
@@ -138,7 +141,7 @@ class DriverDocumentsViewModel extends ChangeNotifier {
           try {
             EasyLoading.show(status: 'Capturing image...');
 
-            final CroppedFile croppedFile = await imageGenerator
+            final File croppedFile = await imageGenerator
                 .createImageFile(fromCamera: source == ImageSource.camera);
 
             EasyLoading.show(status: 'Uploading image...');
@@ -148,7 +151,7 @@ class DriverDocumentsViewModel extends ChangeNotifier {
               fileName: '${documentKey}_image',
               onProgress: (progress) {
                 setProfileImageProgress = progress;
-              },
+              }, folderName: documentKey,
             );
             setDocumentImage(documentKey, imageUrl);
 
