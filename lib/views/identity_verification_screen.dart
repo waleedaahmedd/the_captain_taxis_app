@@ -473,58 +473,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Upload Progress (when uploading)
-              if (viewModel.getUpLoadingProfileImage > 0)
-                Container(
-                  margin: EdgeInsets.only(bottom: 16.h),
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: CustomColors.primaryColor,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Iconsax.cloud_plus,
-                            size: 20.sp,
-                            color: CustomColors.primaryColor,
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            'Uploading Verification...',
-                            style: TextStyle(
-                              color: CustomColors.whiteColor,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.h),
-                      LinearProgressIndicator(
-                        value: viewModel.getUpLoadingProfileImage,
-                        backgroundColor: Colors.grey[800],
-                        valueColor: AlwaysStoppedAnimation<Color>(CustomColors.primaryColor),
-                        minHeight: 6.h,
-                        borderRadius: BorderRadius.circular(3.r),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        '${(viewModel.getUpLoadingProfileImage * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          color: CustomColors.whiteColor,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
               // Capture Button (only show when face is centered)
               if (_isFaceCentered)

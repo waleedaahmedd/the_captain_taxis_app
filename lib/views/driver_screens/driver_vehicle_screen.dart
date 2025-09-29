@@ -11,9 +11,21 @@ import '../../../utils/custom_font_style.dart';
 import '../../../utils/image_genrator.dart';
 import '../../../view_models/driver_vehicle_view_model.dart';
 import '../../../widgets/image_source_bottom_sheet.dart';
+import '../../view_models/driver_documents_view_model.dart';
+import '../../widgets/custom_app_bar_widget.dart';
 
 class DriverVehicleScreen extends StatelessWidget {
   const DriverVehicleScreen({super.key});
+
+  static Widget withAppBar({Key? key}) {
+    return Scaffold(
+      appBar: CustomAppBarWidget(title: ''),
+      body: ChangeNotifierProvider(
+        create: (BuildContext context) => DriverVehicleViewModel(),
+        child: DriverVehicleScreen(key: key),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,7 +364,7 @@ class DriverVehicleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlateCapture(String title, File? image, VoidCallback onTap) {
+  Widget _buildPlateCapture(String title, String? imageUrl, VoidCallback onTap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,17 +376,44 @@ class DriverVehicleScreen extends StatelessWidget {
             width: double.infinity,
             height: 120.h,
             decoration: BoxDecoration(
-              color: image != null ? Colors.transparent : CustomColors.primaryColor.withValues(alpha: 0.05),
+              color: imageUrl != null ? Colors.transparent : CustomColors.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
                 color: CustomColors.primaryColor.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
-            child: image != null
+            child: imageUrl != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
-                    child: Image.file(image, fit: BoxFit.cover),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[200],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: CustomColors.primaryColor,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Iconsax.image,
+                            color: Colors.grey[400],
+                            size: 40.sp,
+                          ),
+                        );
+                      },
+                    ),
                   )
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -392,6 +431,8 @@ class DriverVehicleScreen extends StatelessWidget {
 
   Widget _buildDocumentItem(BuildContext context, String title, String documentKey, IconData icon, DriverVehicleViewModel viewModel) {
     final hasImage = viewModel.hasRequiredDocument(documentKey) || viewModel.hasAdditionalDocument(documentKey);
+    final documentImage = viewModel.getDocumentImage(documentKey);
+    
     return GestureDetector(
       onTap: () => _pickVehicleDocument(context, documentKey, viewModel),
       child: Container(
@@ -405,75 +446,108 @@ class DriverVehicleScreen extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: hasImage ? CustomColors.primaryColor : CustomColors.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Icon(
-                hasImage ? Iconsax.tick_circle : icon,
-                color: hasImage ? CustomColors.whiteColor : CustomColors.primaryColor,
-                size: 24.w,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: hasImage ? CustomColors.primaryColor : CustomColors.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    hasImage ? Iconsax.tick_circle : icon,
+                    color: hasImage ? CustomColors.whiteColor : CustomColors.primaryColor,
+                    size: 24.w,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      black14w500(data: title),
+                      SizedBox(height: 4.h),
+                      grey12(data: hasImage ? 'Document uploaded' : 'Tap to upload'),
+                    ],
+                  ),
+                ),
+                Icon(
+                  hasImage ? Iconsax.tick_circle : Iconsax.arrow_right_3,
+                  color: hasImage ? CustomColors.primaryColor : CustomColors.blackColor.withValues(alpha: 0.4),
+                  size: 20.w,
+                ),
+              ],
             ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  black14w500(data: title),
-                  SizedBox(height: 4.h),
-                  grey12(data: hasImage ? 'Document uploaded' : 'Tap to upload'),
-                ],
+            
+            // Show document image preview if available
+            if (hasImage && documentImage != null) ...[
+              SizedBox(height: 16.h),
+              Container(
+                height: 120.h,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: CustomColors.primaryColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Image.network(
+                    documentImage,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: CustomColors.primaryColor,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Iconsax.image,
+                          color: Colors.grey[400],
+                          size: 40.sp,
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-            Icon(
-              hasImage ? Iconsax.tick_circle : Iconsax.arrow_right_3,
-              color: hasImage ? CustomColors.primaryColor : CustomColors.blackColor.withValues(alpha: 0.4),
-              size: 20.w,
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  // Capture plate image using ImageGenerator
+  // Capture plate image using ImageGenerator with Firebase upload
   Future<void> _capturePlateImage(bool isFront, DriverVehicleViewModel viewModel) async {
     try {
-      final ImageGenerator imageGenerator = ImageGenerator();
-      final File image = await imageGenerator.createImageFile(fromCamera: true);
-      
-      if (isFront) {
-        viewModel.setFrontPlateImage(image);
-      } else {
-        viewModel.setRearPlateImage(image);
-      }
-      _showSuccessMessage('${isFront ? 'Front' : 'Rear'} plate image captured!');
+      await viewModel.capturePlateImageWithGenerator(isFront);
     } catch (e) {
       debugPrint('Plate capture error: $e');
       _showErrorMessage('Failed to capture plate image. Please check camera permissions and try again.');
     }
   }
 
-  // Pick vehicle document using ImageGenerator
+  // Pick vehicle document using ImageGenerator with Firebase upload
   Future<void> _pickVehicleDocument(BuildContext context, String documentKey, DriverVehicleViewModel viewModel) async {
     try {
-      // Show bottom sheet to choose source
-      await ImageSourceBottomSheet.show(
-        title: 'Select Image Source',
-        subtitle: 'Choose how you want to add the image',
-        onImageSelected: (source) async {
-          final ImageGenerator imageGenerator = ImageGenerator();
-          final File image = await imageGenerator.createImageFile(fromCamera: source == ImageSource.camera);
-          
-          viewModel.setVehicleDocumentImage(documentKey, image);
-          _showSuccessMessage('Document uploaded successfully!');
-        },
-      );
+      await viewModel.pickVehicleDocumentWithGenerator(documentKey);
     } catch (e) {
       debugPrint('Vehicle document pick error: $e');
       _showErrorMessage('Failed to upload document. Please check permissions and try again.');

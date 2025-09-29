@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:the_captain_taxis/views/driver_screens/driver_documents_screen.dart';
 import 'package:the_captain_taxis/views/driver_screens/driver_stepper_screen.dart';
+import 'package:the_captain_taxis/views/driver_screens/driver_vehicle_screen.dart';
 import 'package:the_captain_taxis/views/login_screen.dart';
 import 'package:the_captain_taxis/views/otp_screen.dart';
 import 'package:the_captain_taxis/views/splash_screen.dart';
@@ -13,6 +14,7 @@ const String otpRoute = '/otp';
 const String driverRegistrationStepperRoute = '/driver-registration-stepper';
 const String homeRoute = '/home';
 const String driverDocumentsRoutes = '/driver-documents';
+const String driverVehicleRoutes = '/driver-vehicle';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -32,6 +34,10 @@ class RouteGenerator {
       case driverDocumentsRoutes:
         return MaterialPageRoute(
           builder: (_) => DriverDocumentsScreen.withAppBar(),
+        );
+      case driverVehicleRoutes:
+        return MaterialPageRoute(
+          builder: (_) => DriverVehicleScreen.withAppBar(),
         );
       case '/tasting_details':
       /*return MaterialPageRoute(

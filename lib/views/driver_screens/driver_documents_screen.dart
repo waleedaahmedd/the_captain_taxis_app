@@ -123,8 +123,6 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
                   return _buildEmptyImagePreview();
                 },
               )
-            : viewModel.getUpLoadingProfileImage > 0
-            ? _buildUploadingPreview(viewModel)
             : _buildEmptyImagePreview(),
       ),
     );
@@ -171,66 +169,6 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
     );
   }
 
-  Widget _buildUploadingPreview(DriverDocumentsViewModel viewModel) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            CustomColors.primaryColor.withValues(alpha: 0.1),
-            CustomColors.primaryColor.withValues(alpha: 0.2),
-          ],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(20.w),
-            decoration: BoxDecoration(
-              color: CustomColors.primaryColor.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Iconsax.cloud_plus,
-              size: 32.sp,
-              color: CustomColors.primaryColor,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Uploading...',
-            style: TextStyle(
-              fontFamily: 'CircularStd',
-              fontSize: 14.sp,
-              color: CustomColors.primaryColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          Container(
-            width: 120.w,
-            height: 6.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(3.r),
-              color: CustomColors.primaryColor.withValues(alpha: 0.2),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: viewModel.getUpLoadingProfileImage,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3.r),
-                  color: CustomColors.primaryColor,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildVerificationButton(DriverDocumentsViewModel viewModel) {
     return SizedBox(
@@ -372,6 +310,7 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
     DriverDocumentsViewModel viewModel,
   ) {
     final hasImage = viewModel.hasDocumentImage(documentKey);
+    final imageUrl = viewModel.getDocumentImage(documentKey);
 
     return Material(
       color: Colors.transparent,
@@ -401,68 +340,107 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
                   ]
                 : null,
           ),
-          child: Row(
+          child: Column(
             children: [
-              Container(
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: hasImage
-                      ? CustomColors.primaryColor
-                      : CustomColors.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Icon(
-                  hasImage ? Iconsax.tick_circle : icon,
-                  color: hasImage
-                      ? CustomColors.whiteColor
-                      : CustomColors.primaryColor,
-                  size: 20.sp,
-                ),
-              ),
-              SizedBox(width: 16.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontFamily: 'CircularStd',
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                        color: CustomColors.blackColor,
-                      ),
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: hasImage
+                          ? CustomColors.primaryColor
+                          : CustomColors.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      hasImage ? 'Document uploaded' : 'Tap to upload',
-                      style: TextStyle(
-                        fontFamily: 'CircularStd',
-                        fontSize: 13.sp,
-                        color: hasImage
-                            ? CustomColors.primaryColor
-                            : CustomColors.blackColor.withValues(alpha: 0.6),
-                      ),
+                    child: Icon(
+                      hasImage ? Iconsax.tick_circle : icon,
+                      color: hasImage
+                          ? CustomColors.whiteColor
+                          : CustomColors.primaryColor,
+                      size: 20.sp,
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontFamily: 'CircularStd',
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: CustomColors.blackColor,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          hasImage ? 'Document uploaded' : 'Tap to upload',
+                          style: TextStyle(
+                            fontFamily: 'CircularStd',
+                            fontSize: 13.sp,
+                            color: hasImage
+                                ? CustomColors.primaryColor
+                                : CustomColors.blackColor.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: hasImage
+                          ? CustomColors.primaryColor.withValues(alpha: 0.1)
+                          : CustomColors.blackColor.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Icon(
+                      hasImage ? Iconsax.tick_circle : Iconsax.arrow_right_3,
+                      color: hasImage
+                          ? CustomColors.primaryColor
+                          : CustomColors.blackColor.withValues(alpha: 0.4),
+                      size: 16.sp,
+                    ),
+                  ),
+                ],
               ),
-              Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  color: hasImage
-                      ? CustomColors.primaryColor.withValues(alpha: 0.1)
-                      : CustomColors.blackColor.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8.r),
+              
+              // Show image preview if available
+              if (hasImage && imageUrl != null) ...[
+                SizedBox(height: 16.h),
+                Container(
+                  height: 120.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: CustomColors.primaryColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Iconsax.image,
+                            color: Colors.grey[400],
+                            size: 40.sp,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  hasImage ? Iconsax.tick_circle : Iconsax.arrow_right_3,
-                  color: hasImage
-                      ? CustomColors.primaryColor
-                      : CustomColors.blackColor.withValues(alpha: 0.4),
-                  size: 16.sp,
-                ),
-              ),
+              ],
+
             ],
           ),
         ),

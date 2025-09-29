@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../models/requests/driver_vehicle_request.dart';
 import '../models/responses/driver_vehicle_response.dart';
 import '../services/driver_vehicle_service.dart';
+import '../services/firebase_service.dart';
+import '../utils/image_genrator.dart';
+import '../widgets/image_source_bottom_sheet.dart';
 import '../models/base_response_model.dart';
 
 class DriverVehicleViewModel extends ChangeNotifier {
   final ImagePicker _imagePicker = ImagePicker();
+  final ImageGenerator imageGenerator = ImageGenerator();
+  final FirebaseService firebaseService = FirebaseService();
 
   // Vehicle Information Controllers
   final TextEditingController _taxiPlateController = TextEditingController();
@@ -19,14 +25,14 @@ class DriverVehicleViewModel extends ChangeNotifier {
 
   // Vehicle Information State
   String _selectedVehicleType = 'sedan';
-  File? _frontPlateImage;
-  File? _rearPlateImage;
-  final Map<String, File?> _requiredDocuments = {
+  String? _frontPlateImage;
+  String? _rearPlateImage;
+  final Map<String, String?> _requiredDocuments = {
     'registration': null,
     'comprehensiveInsurance': null,
     'ctpInsurance': null,
   };
-  final Map<String, File?> _additionalDocuments = {
+  final Map<String, String?> _additionalDocuments = {
     'workCover': null,
     'publicLiability': null,
     'safetyInspection': null,
@@ -46,10 +52,10 @@ class DriverVehicleViewModel extends ChangeNotifier {
 
   // Vehicle Information State Getters
   String get getSelectedVehicleType => _selectedVehicleType;
-  File? get getFrontPlateImage => _frontPlateImage;
-  File? get getRearPlateImage => _rearPlateImage;
-  Map<String, File?> get getRequiredDocuments => Map.from(_requiredDocuments);
-  Map<String, File?> get getAdditionalDocuments => Map.from(_additionalDocuments);
+  String? get getFrontPlateImage => _frontPlateImage;
+  String? get getRearPlateImage => _rearPlateImage;
+  Map<String, String?> get getRequiredDocuments => Map.from(_requiredDocuments);
+  Map<String, String?> get getAdditionalDocuments => Map.from(_additionalDocuments);
 
   // Form key management
   GlobalKey<FormState> getFormKeyForStep(int step) {
@@ -72,21 +78,21 @@ class DriverVehicleViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setFrontPlateImage(File image) {
-    _frontPlateImage = image;
+  void setFrontPlateImage(String imageUrl) {
+    _frontPlateImage = imageUrl;
     notifyListeners();
   }
 
-  void setRearPlateImage(File image) {
-    _rearPlateImage = image;
+  void setRearPlateImage(String imageUrl) {
+    _rearPlateImage = imageUrl;
     notifyListeners();
   }
 
-  void setVehicleDocumentImage(String documentKey, File image) {
+  void setVehicleDocumentImage(String documentKey, String imageUrl) {
     if (_requiredDocuments.containsKey(documentKey)) {
-      _requiredDocuments[documentKey] = image;
+      _requiredDocuments[documentKey] = imageUrl;
     } else if (_additionalDocuments.containsKey(documentKey)) {
-      _additionalDocuments[documentKey] = image;
+      _additionalDocuments[documentKey] = imageUrl;
     }
     notifyListeners();
   }
@@ -95,43 +101,104 @@ class DriverVehicleViewModel extends ChangeNotifier {
   bool hasRequiredDocument(String documentKey) => _requiredDocuments[documentKey] != null;
   bool hasAdditionalDocument(String documentKey) => _additionalDocuments[documentKey] != null;
   bool hasPlateImage(bool isFront) => isFront ? _frontPlateImage != null : _rearPlateImage != null;
+  
+  // Document image getters
+  String? getRequiredDocumentImage(String documentKey) => _requiredDocuments[documentKey];
+  String? getAdditionalDocumentImage(String documentKey) => _additionalDocuments[documentKey];
+  String? getDocumentImage(String documentKey) {
+    if (_requiredDocuments.containsKey(documentKey)) {
+      return _requiredDocuments[documentKey];
+    } else if (_additionalDocuments.containsKey(documentKey)) {
+      return _additionalDocuments[documentKey];
+    }
+    return null;
+  }
 
   // Image capture methods
-  Future<void> capturePlateImage(bool isFront) async {
+  // Plate image capture with Firebase upload
+  Future<void> capturePlateImageWithGenerator(bool isFront) async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
+      EasyLoading.show(status: 'Capturing plate image...');
+      
+      final File imageFile = await imageGenerator.createImageFile(fromCamera: true);
+      
+      EasyLoading.show(status: 'Uploading plate image...');
+      
+      final String imageUrl = await firebaseService.upLoadImageFile(
+        mFileImage: imageFile,
+        fileName: '${isFront ? 'front' : 'rear'}_plate_${DateTime.now().millisecondsSinceEpoch}',
+        folderName: 'Vehicle Plates',
       );
-      if (image != null) {
-        if (isFront) {
-          _frontPlateImage = File(image.path);
-        } else {
-          _rearPlateImage = File(image.path);
-        }
-        notifyListeners();
+      
+      if (isFront) {
+        setFrontPlateImage(imageUrl);
+      } else {
+        setRearPlateImage(imageUrl);
       }
+      
+      EasyLoading.showSuccess('${isFront ? 'Front' : 'Rear'} plate image captured successfully!');
     } catch (e) {
-      print('Failed to capture plate image: $e');
+      EasyLoading.showError(e.toString());
+    }
+  }
+
+  // Document image upload with Firebase
+  Future<void> pickVehicleDocumentWithGenerator(String documentKey) async {
+    try {
+      await ImageSourceBottomSheet.show(
+        title: 'Select Image Source',
+        subtitle: 'Choose how you want to add the image',
+        onImageSelected: (source) async {
+          try {
+            EasyLoading.show(status: 'Capturing document...');
+            
+            final File imageFile = await imageGenerator.createImageFile(fromCamera: source == ImageSource.camera);
+            
+            EasyLoading.show(status: 'Uploading document...');
+            
+            final String imageUrl = await firebaseService.upLoadImageFile(
+              mFileImage: imageFile,
+              fileName: '${documentKey}_${DateTime.now().millisecondsSinceEpoch}',
+              folderName: 'Vehicle Documents',
+            );
+            
+            setVehicleDocumentImage(documentKey, imageUrl);
+            EasyLoading.showSuccess('Document uploaded successfully!');
+          } catch (e) {
+            EasyLoading.showError(e.toString());
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('Vehicle document pick error: $e');
+      throw Exception('Failed to upload document. Please check permissions and try again.');
     }
   }
 
   Future<void> pickVehicleDocumentImage(String documentKey, ImageSource source) async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 80,
+      EasyLoading.show(status: 'Capturing document...');
+      
+      final File imageFile = await imageGenerator.createImageFile(fromCamera: source == ImageSource.camera);
+      
+      EasyLoading.show(status: 'Uploading document...');
+      
+      final String imageUrl = await firebaseService.upLoadImageFile(
+        mFileImage: imageFile,
+        fileName: '${documentKey}_${DateTime.now().millisecondsSinceEpoch}',
+        folderName: 'Vehicle Documents',
       );
-      if (image != null) {
-        if (_requiredDocuments.containsKey(documentKey)) {
-          _requiredDocuments[documentKey] = File(image.path);
-        } else {
-          _additionalDocuments[documentKey] = File(image.path);
-        }
-        notifyListeners();
+      
+      if (_requiredDocuments.containsKey(documentKey)) {
+        _requiredDocuments[documentKey] = imageUrl;
+      } else {
+        _additionalDocuments[documentKey] = imageUrl;
       }
+      notifyListeners();
+      
+      EasyLoading.showSuccess('Document uploaded successfully!');
     } catch (e) {
-      print('Failed to pick document image: $e');
+      EasyLoading.showError(e.toString());
     }
   }
 
@@ -154,10 +221,10 @@ class DriverVehicleViewModel extends ChangeNotifier {
       'year': _yearController.text.trim(),
       'color': _colorController.text.trim(),
       'selectedVehicleType': _selectedVehicleType,
-      'frontPlateImage': _frontPlateImage?.path,
-      'rearPlateImage': _rearPlateImage?.path,
-      'requiredDocuments': _requiredDocuments.map((key, value) => MapEntry(key, value?.path)),
-      'additionalDocuments': _additionalDocuments.map((key, value) => MapEntry(key, value?.path)),
+      'frontPlateImage': _frontPlateImage,
+      'rearPlateImage': _rearPlateImage,
+      'requiredDocuments': _requiredDocuments,
+      'additionalDocuments': _additionalDocuments,
     };
   }
 
@@ -172,17 +239,17 @@ class DriverVehicleViewModel extends ChangeNotifier {
     _selectedVehicleType = vehicleInfo['selectedVehicleType'] ?? 'sedan';
     
     if (vehicleInfo['frontPlateImage'] != null && vehicleInfo['frontPlateImage'].isNotEmpty) {
-      _frontPlateImage = File(vehicleInfo['frontPlateImage']);
+      _frontPlateImage = vehicleInfo['frontPlateImage'];
     }
     if (vehicleInfo['rearPlateImage'] != null && vehicleInfo['rearPlateImage'].isNotEmpty) {
-      _rearPlateImage = File(vehicleInfo['rearPlateImage']);
+      _rearPlateImage = vehicleInfo['rearPlateImage'];
     }
     
     if (vehicleInfo['requiredDocuments'] != null) {
       final requiredDocs = Map<String, String>.from(vehicleInfo['requiredDocuments']);
       requiredDocs.forEach((key, value) {
         if (value.isNotEmpty) {
-          _requiredDocuments[key] = File(value);
+          _requiredDocuments[key] = value;
         }
       });
     }
@@ -191,7 +258,7 @@ class DriverVehicleViewModel extends ChangeNotifier {
       final additionalDocs = Map<String, String>.from(vehicleInfo['additionalDocuments']);
       additionalDocs.forEach((key, value) {
         if (value.isNotEmpty) {
-          _additionalDocuments[key] = File(value);
+          _additionalDocuments[key] = value;
         }
       });
     }
@@ -239,10 +306,10 @@ class DriverVehicleViewModel extends ChangeNotifier {
       year: _yearController.text.trim(),
       color: _colorController.text.trim(),
       selectedVehicleType: _selectedVehicleType,
-      frontPlateImage: _frontPlateImage?.path,
-      rearPlateImage: _rearPlateImage?.path,
-      requiredDocuments: _requiredDocuments.map((key, value) => MapEntry(key, value?.path)),
-      additionalDocuments: _additionalDocuments.map((key, value) => MapEntry(key, value?.path)),
+      frontPlateImage: _frontPlateImage,
+      rearPlateImage: _rearPlateImage,
+      requiredDocuments: _requiredDocuments,
+      additionalDocuments: _additionalDocuments,
     );
   }
 
@@ -257,16 +324,16 @@ class DriverVehicleViewModel extends ChangeNotifier {
     _selectedVehicleType = request.selectedVehicleType ?? 'sedan';
     
     if (request.frontPlateImage != null && request.frontPlateImage!.isNotEmpty) {
-      _frontPlateImage = File(request.frontPlateImage!);
+      _frontPlateImage = request.frontPlateImage;
     }
     if (request.rearPlateImage != null && request.rearPlateImage!.isNotEmpty) {
-      _rearPlateImage = File(request.rearPlateImage!);
+      _rearPlateImage = request.rearPlateImage;
     }
     
     if (request.requiredDocuments != null) {
       request.requiredDocuments!.forEach((key, value) {
         if (value != null && value.isNotEmpty) {
-          _requiredDocuments[key] = File(value);
+          _requiredDocuments[key] = value;
         }
       });
     }
@@ -274,7 +341,7 @@ class DriverVehicleViewModel extends ChangeNotifier {
     if (request.additionalDocuments != null) {
       request.additionalDocuments!.forEach((key, value) {
         if (value != null && value.isNotEmpty) {
-          _additionalDocuments[key] = File(value);
+          _additionalDocuments[key] = value;
         }
       });
     }

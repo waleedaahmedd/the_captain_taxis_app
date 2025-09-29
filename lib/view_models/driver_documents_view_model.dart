@@ -29,8 +29,6 @@ class DriverDocumentsViewModel extends ChangeNotifier {
     'englishCertificate': null,
   };
 
-  // Progress tracking for uploads
-  double _profileImageProgress = 0.0;
 
   // Form key management
   GlobalKey<FormState>? _formKey;
@@ -38,7 +36,6 @@ class DriverDocumentsViewModel extends ChangeNotifier {
   // Getters
   String? get getIdentityVerificationImage => _identityVerificationImage;
   Map<String, String?> get getDocumentImages => Map.from(_documentImages);
-  double get getUpLoadingProfileImage => _profileImageProgress;
   GlobalKey<FormState>? get getFormKey => _formKey;
 
   // Form key management
@@ -56,11 +53,6 @@ class DriverDocumentsViewModel extends ChangeNotifier {
     }
   }
 
-  // Progress setter
-  set setProfileImageProgress(double value) {
-    _profileImageProgress = value;
-    notifyListeners();
-  }
 
   // Document image getters and setters
   String? getDocumentImage(String documentKey) => _documentImages[documentKey];
@@ -105,17 +97,13 @@ class DriverDocumentsViewModel extends ChangeNotifier {
   // Identity verification image capture
   Future<bool> captureIdentityImageWithGenerator(File cameraImage) async {
     try {
-      // Start progress tracking
-      setProfileImageProgress = 0.0;
       Random random = Random();
       int randomNumber = random.nextInt(100);
-      // Start upload and track real progress
+      // Start upload
       final String imageUrl = await firebaseService.upLoadImageFile(
         mFileImage: cameraImage,
         fileName: randomNumber.toString(),
-        onProgress: (progress) {
-          setProfileImageProgress = progress;
-        }, folderName: 'Driver Image',
+        folderName: 'Driver Image',
       );
       
       setIdentityVerificationImage(imageUrl);
@@ -125,7 +113,6 @@ class DriverDocumentsViewModel extends ChangeNotifier {
       );
       return true;
     } catch (e) {
-      setProfileImageProgress = 0.0; // Reset progress on error
       EasyLoading.showError(e.toString());
       return false;
     }
@@ -149,9 +136,7 @@ class DriverDocumentsViewModel extends ChangeNotifier {
             final String imageUrl = await firebaseService.upLoadImageFile(
               mFileImage: File(croppedFile.path),
               fileName: '${documentKey}_image',
-              onProgress: (progress) {
-                setProfileImageProgress = progress;
-              }, folderName: documentKey,
+              folderName: documentKey,
             );
             setDocumentImage(documentKey, imageUrl);
 
