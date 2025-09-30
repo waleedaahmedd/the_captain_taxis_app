@@ -13,6 +13,7 @@ import '../../../view_models/driver_vehicle_view_model.dart';
 import '../../../widgets/image_source_bottom_sheet.dart';
 import '../../view_models/driver_documents_view_model.dart';
 import '../../widgets/custom_app_bar_widget.dart';
+import 'vehicle_number_plate_screen.dart';
 
 class DriverVehicleScreen extends StatelessWidget {
   const DriverVehicleScreen({super.key});
@@ -54,7 +55,7 @@ class DriverVehicleScreen extends StatelessWidget {
                         children: [
                           _buildVehicleInformationSection(viewModel),
                           SizedBox(height: 24.h),
-                          _buildLicensePlateSection(viewModel),
+                          _buildLicensePlateSection(context, viewModel),
                           SizedBox(height: 24.h),
                           _buildRequiredDocumentsSection(context, viewModel),
                           SizedBox(height: 24.h),
@@ -180,7 +181,7 @@ class DriverVehicleScreen extends StatelessWidget {
   }
 
   // Section 2: License Plate Recognition
-  Widget _buildLicensePlateSection(DriverVehicleViewModel viewModel) {
+  Widget _buildLicensePlateSection(BuildContext context, DriverVehicleViewModel viewModel) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -207,11 +208,11 @@ class DriverVehicleScreen extends StatelessWidget {
           SizedBox(height: 20.h),
           
           // Front Plate
-          _buildPlateCapture('Front Number Plate', viewModel.getFrontPlateImage, () => _capturePlateImage(true, viewModel)),
+          _buildPlateCapture('Front Number Plate', viewModel.getFrontPlateImage, () => _capturePlateImage(context, true, viewModel)),
           SizedBox(height: 16.h),
           
           // Rear Plate
-          _buildPlateCapture('Rear Number Plate', viewModel.getRearPlateImage, () => _capturePlateImage(false, viewModel)),
+          _buildPlateCapture('Rear Number Plate', viewModel.getRearPlateImage, () => _capturePlateImage(context, false, viewModel)),
         ],
       ),
     );
@@ -534,13 +535,22 @@ class DriverVehicleScreen extends StatelessWidget {
     );
   }
 
-  // Capture plate image using ImageGenerator with Firebase upload
-  Future<void> _capturePlateImage(bool isFront, DriverVehicleViewModel viewModel) async {
+  // Capture plate image using number plate detection screen
+  Future<void> _capturePlateImage(BuildContext context, bool isFront, DriverVehicleViewModel viewModel) async {
     try {
-      await viewModel.capturePlateImageWithGenerator(isFront);
+      final result = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VehicleNumberPlateScreen(isFrontPlate: isFront),
+        ),
+      );
+      
+      if (result != null) {
+        _showSuccessMessage(context, 'Number plate captured: $result');
+      }
     } catch (e) {
       debugPrint('Plate capture error: $e');
-      _showErrorMessage('Failed to capture plate image. Please check camera permissions and try again.');
+      _showErrorMessage(context, 'Failed to capture plate image. Please check camera permissions and try again.');
     }
   }
 
@@ -550,19 +560,27 @@ class DriverVehicleScreen extends StatelessWidget {
       await viewModel.pickVehicleDocumentWithGenerator(documentKey);
     } catch (e) {
       debugPrint('Vehicle document pick error: $e');
-      _showErrorMessage('Failed to upload document. Please check permissions and try again.');
+      _showErrorMessage(context, 'Failed to upload document. Please check permissions and try again.');
     }
   }
 
-  void _showSuccessMessage(String message) {
-    // Note: This would need to be called from a StatefulWidget context
-    // For now, we'll use debugPrint
-    debugPrint('Success: $message');
+  void _showSuccessMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
-  void _showErrorMessage(String message) {
-    // Note: This would need to be called from a StatefulWidget context
-    // For now, we'll use debugPrint
-    debugPrint('Error: $message');
+  void _showErrorMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
